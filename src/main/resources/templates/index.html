@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>MySearch · 多路召回聚合搜索</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">
+        <span class="logo">My</span><span class="logo-alt">Search</span>
+        <span class="version" th:text="'v' + ${version}">v0.1.0</span>
+    </div>
+    <div class="providers" th:if="${enabledProviders != null and !enabledProviders.isEmpty()}">
+        <span class="label">已启用引擎:</span>
+        <span class="chip" th:each="p : ${enabledProviders}" th:text="${p}">searxng</span>
+    </div>
+</header>
+
+<main class="container">
+    <form id="search-form" class="search-form" autocomplete="off">
+        <input id="q" name="q" type="search" class="search-input"
+               placeholder="输入关键词，聚合 SearXNG / Google / Bing 的结果..." maxlength="200" required/>
+        <button type="submit" class="search-btn">搜索</button>
+        <div class="advanced">
+            <label>
+                <span>每页</span>
+                <select id="size" name="size">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </select>
+            </label>
+            <label>
+                <span>语言</span>
+                <select id="lang" name="lang">
+                    <option value="zh-CN" selected>zh-CN</option>
+                    <option value="en-US">en-US</option>
+                    <option value="ja-JP">ja-JP</option>
+                    <option value="auto">auto</option>
+                </select>
+            </label>
+            <label>
+                <span>安全搜索</span>
+                <select id="safesearch" name="safesearch">
+                    <option value="0">off</option>
+                    <option value="1" selected>moderate</option>
+                    <option value="2">strict</option>
+                </select>
+            </label>
+            <label class="checkbox">
+                <input type="checkbox" id="nocache" name="nocache"/>
+                <span>绕过缓存</span>
+            </label>
+        </div>
+    </form>
+
+    <section id="summary" class="summary hidden"></section>
+
+    <section id="status" class="status hidden"></section>
+
+    <section id="results" class="results"></section>
+
+    <nav id="pager" class="pager hidden"></nav>
+</main>
+
+<footer class="footer">
+    <span>MySearch MVP · 单次查询并发调用多个搜索引擎 · RRF 融合排序</span>
+</footer>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

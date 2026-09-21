@@ -1,0 +1,17 @@
+spring:
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    root: INFO
+    com.mysearch: DEBUG
+    org.springframework.web: INFO
+    reactor.netty.http.client: INFO
+
+mysearch:
+  rate-limit:
+    enabled: false
+  cache:
+    ttl-seconds: 60
+    empty-ttl-seconds: 30

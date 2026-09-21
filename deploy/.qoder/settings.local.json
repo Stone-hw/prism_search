@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose -f /Users/shw/IdeaProjects/mysearch/docker-compose.yml ps 2>/dev/null; echo \"---\"; docker ps -a --filter \"name=mysearch\" 2>/dev/null; echo \"---\"; docker images | grep -E \"redis|searxng\" 2>/dev/null)",
+      "Bash(docker images | grep -E \"redis|searxng\" 2>/dev/null; echo \"===\"; docker ps -a 2>/dev/null; echo \"===\"; docker pull --quiet redis:7-alpine 2>&1 | tail -5; echo \"===\"; docker pull --quiet searxng/searxng:latest 2>&1 | tail -5)",
+      "Bash(docker images | grep -E \"redis|searxng\"; echo \"---CONTAINERS---\"; docker ps -a --filter \"name=mysearch\")"
+    ]
+  }
+}

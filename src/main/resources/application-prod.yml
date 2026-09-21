@@ -1,0 +1,20 @@
+spring:
+  thymeleaf:
+    cache: true
+
+logging:
+  level:
+    root: INFO
+    com.mysearch: INFO
+  file:
+    name: ${LOG_FILE:/var/log/mysearch/mysearch.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 14
+      total-size-cap: 2GB
+
+management:
+  endpoint:
+    health:
+      show-details: never

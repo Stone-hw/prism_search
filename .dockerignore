@@ -1,0 +1,17 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.git/
+.gitignore
+README.md
+docker-compose.yml
+Dockerfile
+deploy/
+logs/
+*.log
+.env
+.env.local

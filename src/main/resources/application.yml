@@ -1,0 +1,112 @@
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/css,application/javascript
+  tomcat:
+    threads:
+      max: 200
+    max-connections: 8192
+
+spring:
+  application:
+    name: mysearch
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+    mode: HTML
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      lettuce:
+        pool:
+          max-active: 32
+          max-idle: 16
+          min-idle: 4
+          max-wait: 1s
+  web:
+    resources:
+      static-locations: classpath:/static/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+mysearch:
+  providers:
+    searxng:
+      enabled: ${SEARXNG_ENABLED:true}
+      base-url: ${SEARXNG_BASE_URL:http://localhost:8888}
+      timeout-ms: 5000
+      weight: 0.8
+      page-size: 10
+    google:
+      enabled: ${GOOGLE_ENABLED:false}
+      api-key: ${GOOGLE_API_KEY:}
+      cx: ${GOOGLE_CX:}
+      timeout-ms: 2500
+      weight: 1.0
+      page-size: 10
+    bing:
+      enabled: ${BING_ENABLED:false}
+      api-key: ${BING_API_KEY:}
+      endpoint: https://api.bing.microsoft.com/v7.0/search
+      timeout-ms: 2500
+      weight: 0.9
+      page-size: 10
+      mkt: zh-CN
+  rank:
+    rrf-k: 60
+    simhash-threshold: 3
+    simhash-cache-days: 7
+  cache:
+    enabled: true
+    ttl-seconds: 1800
+    empty-ttl-seconds: 300
+    jitter-ratio: 0.1
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    per-minute: 30
+  suggest:
+    limit: 8
+    hot-words:
+      - spring boot
+      - java 并发
+      - redis
+      - docker compose
+      - kotlin coroutines
+      - react hooks
+      - vue3 composition api
+      - kubernetes
+      - postgresql 索引
+      - mybatis plus
+      - elasticsearch
+      - nginx 配置
+      - linux 性能
+      - kafka
+      - prometheus

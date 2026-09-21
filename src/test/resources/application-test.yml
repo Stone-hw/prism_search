@@ -1,0 +1,49 @@
+spring:
+  thymeleaf:
+    cache: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 500ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: false
+
+mysearch:
+  providers:
+    searxng:
+      enabled: false
+      base-url: http://localhost:18888
+      timeout-ms: 500
+    google:
+      enabled: false
+      api-key: test
+      cx: test
+      timeout-ms: 500
+    bing:
+      enabled: false
+      api-key: test
+      timeout-ms: 500
+  rate-limit:
+    enabled: false
+  cache:
+    enabled: false
+    ttl-seconds: 10
+    empty-ttl-seconds: 5
+
+logging:
+  level:
+    root: WARN
+    com.mysearch: INFO
