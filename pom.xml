@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.mysearch</groupId>
-    <artifactId>mysearch</artifactId>
+    <groupId>com.prismsearch</groupId>
+    <artifactId>prismsearch</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>mysearch</name>
-    <description>MySearch - Multi-provider meta search engine (MVP)</description>
+    <name>prismsearch</name>
+    <description>PrismSearch - Multi-provider meta search engine (MVP)</description>
 
     <properties>
         <java.version>21</java.version>
@@ -104,7 +104,7 @@
     </dependencies>
 
     <build>
-        <finalName>mysearch</finalName>
+        <finalName>prismsearch</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

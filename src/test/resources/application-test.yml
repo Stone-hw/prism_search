@@ -21,7 +21,7 @@ management:
     redis:
       enabled: false
 
-mysearch:
+prismsearch:
   providers:
     searxng:
       enabled: false
@@ -46,4 +46,4 @@ mysearch:
 logging:
   level:
     root: WARN
-    com.mysearch: INFO
+    com.prismsearch: INFO

@@ -5,11 +5,11 @@ spring:
 logging:
   level:
     root: INFO
-    com.mysearch: DEBUG
+    com.prismsearch: DEBUG
     org.springframework.web: INFO
     reactor.netty.http.client: INFO
 
-mysearch:
+prismsearch:
   rate-limit:
     enabled: false
   cache:

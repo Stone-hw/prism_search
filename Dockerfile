@@ -11,18 +11,18 @@ RUN mvn -B -DskipTests clean package
 
 # ---------- Runtime stage ----------
 FROM eclipse-temurin:21-jre
-LABEL org.opencontainers.image.title="mysearch" \
+LABEL org.opencontainers.image.title="prismsearch" \
       org.opencontainers.image.description="Multi-provider meta search engine"
 
 # Non-root user
-RUN groupadd --system --gid 1001 mysearch \
-    && useradd --system --uid 1001 --gid mysearch --home-dir /app --create-home mysearch
+RUN groupadd --system --gid 1001 prismsearch \
+    && useradd --system --uid 1001 --gid prismsearch --home-dir /app --create-home prismsearch
 
 WORKDIR /app
-COPY --from=build /workspace/target/mysearch.jar /app/app.jar
+COPY --from=build /workspace/target/prismsearch.jar /app/app.jar
 
-RUN chown -R mysearch:mysearch /app
-USER mysearch
+RUN chown -R prismsearch:prismsearch /app
+USER prismsearch
 
 EXPOSE 8080
 

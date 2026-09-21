@@ -3,7 +3,7 @@ version: "3.9"
 services:
   redis:
     image: redis:7-alpine
-    container_name: mysearch-redis
+    container_name: prismsearch-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -16,7 +16,7 @@ services:
 
   searxng:
     image: searxng/searxng:latest
-    container_name: mysearch-searxng
+    container_name: prismsearch-searxng
     restart: unless-stopped
     ports:
       - "8888:8080"
@@ -24,17 +24,17 @@ services:
       - ./deploy/searxng:/etc/searxng:rw
     environment:
       - SEARXNG_BASE_URL=http://localhost:8888/
-      - SEARXNG_SECRET=${SEARXNG_SECRET:-mysearch-dev-secret-change-me}
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-prismsearch-dev-secret-change-me}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
       interval: 15s
       timeout: 5s
       retries: 5
 
-  # Enable after `mvn clean package` and `docker build -t mysearch:latest .`
-  mysearch:
-    image: mysearch:latest
-    container_name: mysearch-app
+  # Enable after `mvn clean package` and `docker build -t prismsearch:latest .`
+  prismsearch:
+    image: prismsearch:latest
+    container_name: prismsearch-app
     restart: unless-stopped
     depends_on:
       redis:

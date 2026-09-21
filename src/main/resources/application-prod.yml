@@ -5,9 +5,9 @@ spring:
 logging:
   level:
     root: INFO
-    com.mysearch: INFO
+    com.prismsearch: INFO
   file:
-    name: ${LOG_FILE:/var/log/mysearch/mysearch.log}
+    name: ${LOG_FILE:/var/log/prismsearch/prismsearch.log}
   logback:
     rollingpolicy:
       max-file-size: 100MB
