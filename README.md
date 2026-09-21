@@ -1,4 +1,4 @@
-# MySearch
+# PrismSearch
 
 多路召回聚合搜索引擎（Meta Search Engine）MVP，基于 Spring Boot 3 + JDK 21 虚拟线程构建，一次查询并发调用 **SearXNG**、**Google Custom Search**、**Bing Web Search**，经过标准化、URL/SimHash 双层去重、RRF 融合排序后返回统一结果。
 
@@ -19,9 +19,9 @@
 ## 目录结构
 
 ```
-mysearch/
-├── src/main/java/com/mysearch/
-│   ├── MysearchApplication.java
+prismsearch/
+├── src/main/java/com/prismsearch/
+│   ├── PrismsearchApplication.java
 │   ├── web/               # Controller / TraceIdFilter
 │   ├── service/           # SearchOrchestrator (+impl)
 │   ├── provider/          # SearchProvider / SearxngProvider / GoogleProvider / BingProvider
@@ -29,7 +29,7 @@ mysearch/
 │   ├── cache/             # SearchCacheService / RateLimitFilter
 │   ├── model/             # SearchRequest / SearchResponse / RawSearchResult / NormalizedResult / ProviderStatus
 │   ├── common/            # ApiResponse / ErrorCode / BizException / Constants
-│   ├── config/            # MysearchProperties / WebClientConfig / ExecutorConfig / RedisConfig / OpenApiConfig
+│   ├── config/            # PrismsearchProperties / WebClientConfig / ExecutorConfig / RedisConfig / OpenApiConfig
 │   ├── exception/         # GlobalExceptionHandler
 │   └── util/              # Md5Util / TimeUtil
 ├── src/main/resources/
@@ -39,7 +39,7 @@ mysearch/
 │   ├── logback-spring.xml
 │   ├── templates/index.html
 │   └── static/{css,js}/
-├── src/test/java/com/mysearch/       # 单元 + 集成测试
+├── src/test/java/com/prismsearch/    # 单元 + 集成测试
 ├── deploy/searxng/settings.yml
 ├── docker-compose.yml
 ├── Dockerfile
@@ -93,7 +93,7 @@ mvn spring-boot:run
 
 ```bash
 mvn clean package -DskipTests
-java -jar target/mysearch.jar
+java -jar target/prismsearch.jar
 ```
 
 浏览器打开 <http://localhost:8080/>，或调用 API：
@@ -106,7 +106,7 @@ curl 'http://localhost:8080/api/search?q=spring+boot&page=1&size=10'
 
 ```bash
 mvn clean package -DskipTests
-docker build -t mysearch:latest .
+docker build -t prismsearch:latest .
 docker-compose up -d
 ```
 
@@ -173,7 +173,7 @@ Spring Boot Actuator 健康检查。
 核心配置见 [`src/main/resources/application.yml`](./src/main/resources/application.yml)。所有 API Key 通过环境变量注入，禁止硬编码：
 
 ```yaml
-mysearch:
+prismsearch:
   providers:
     searxng:
       enabled: ${SEARXNG_ENABLED:true}
@@ -215,13 +215,13 @@ mvn test
 
 启动后访问 <http://localhost:8080/actuator/prometheus>：
 
-- `mysearch_request_total{cached,success}`
-- `mysearch_request_latency_seconds`
-- `mysearch_provider_latency_seconds{name}`
-- `mysearch_provider_error_total{name,type}`
-- `mysearch_cache_hit_total` / `mysearch_cache_miss_total` / `mysearch_cache_error_total{op}`
-- `mysearch_ratelimit_blocked_total`
-- `mysearch_result_count`
+- `prismsearch_request_total{cached,success}`
+- `prismsearch_request_latency_seconds`
+- `prismsearch_provider_latency_seconds{name}`
+- `prismsearch_provider_error_total{name,type}`
+- `prismsearch_cache_hit_total` / `prismsearch_cache_miss_total` / `prismsearch_cache_error_total{op}`
+- `prismsearch_ratelimit_blocked_total`
+- `prismsearch_result_count`
 
 ## 已知限制（MVP）
 
