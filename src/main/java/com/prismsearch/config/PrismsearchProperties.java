@@ -146,9 +146,25 @@ public class PrismsearchProperties {
     }
 
     public static class Suggest {
-        /** Local hot-word dictionary used by /api/suggest in MVP. */
+        /** Whether Redis-backed hot words are enabled; false falls back to static list. */
+        private boolean enabled = true;
+        /** Local hot-word dictionary used as fallback when Redis is unavailable. */
         private List<String> hotWords = new ArrayList<>();
         private int limit = 8;
+        /** Cron expression for the hot-word aggregation scheduled task. */
+        private String aggregateCron = "0 0 * * * ?";
+        /** Number of top search-log entries to promote during aggregation. */
+        private int aggregateTopN = 50;
+        /** TTL in days for the search-log ZSet. */
+        private int searchlogTtlDays = 7;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
 
         public List<String> getHotWords() {
             return hotWords;
@@ -164,6 +180,30 @@ public class PrismsearchProperties {
 
         public void setLimit(int limit) {
             this.limit = limit;
+        }
+
+        public String getAggregateCron() {
+            return aggregateCron;
+        }
+
+        public void setAggregateCron(String aggregateCron) {
+            this.aggregateCron = aggregateCron;
+        }
+
+        public int getAggregateTopN() {
+            return aggregateTopN;
+        }
+
+        public void setAggregateTopN(int aggregateTopN) {
+            this.aggregateTopN = aggregateTopN;
+        }
+
+        public int getSearchlogTtlDays() {
+            return searchlogTtlDays;
+        }
+
+        public void setSearchlogTtlDays(int searchlogTtlDays) {
+            this.searchlogTtlDays = searchlogTtlDays;
         }
     }
 }

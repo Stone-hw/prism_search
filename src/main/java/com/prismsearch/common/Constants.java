@@ -23,6 +23,15 @@ public final class Constants {
     /** Cache key: provider failure counter (circuit breaker). */
     public static final String CACHE_PROVIDER_FAIL_PREFIX = CACHE_PREFIX + "provider:fail:";
 
+    /** Redis key: hot-word manual set (admin-curated). */
+    public static final String HOTWORD_MANUAL_KEY = CACHE_PREFIX + "hotwords:manual";
+
+    /** Redis key: hot-word auto set (aggregated from search log). */
+    public static final String HOTWORD_AUTO_KEY = CACHE_PREFIX + "hotwords:auto";
+
+    /** Redis key: search log ZSet (member=query, score=frequency). */
+    public static final String SEARCHLOG_KEY = CACHE_PREFIX + "searchlog";
+
     /** MDC key for the trace id. */
     public static final String MDC_TRACE_ID = "traceId";
 

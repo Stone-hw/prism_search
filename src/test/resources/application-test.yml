@@ -46,6 +46,8 @@ prismsearch:
     enabled: false
     ttl-seconds: 10
     empty-ttl-seconds: 5
+  suggest:
+    enabled: false
 
 logging:
   level:

@@ -1,5 +1,6 @@
 package com.prismsearch.service.impl;
 
+import com.prismsearch.cache.HotWordService;
 import com.prismsearch.cache.SearchCacheService;
 import com.prismsearch.common.BizException;
 import com.prismsearch.common.ErrorCode;
@@ -42,17 +43,20 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
     private final List<SearchProvider> providers;
     private final ResultProcessor resultProcessor;
     private final SearchCacheService cacheService;
+    private final HotWordService hotWordService;
     private final ExecutorService providerExecutor;
     private final MeterRegistry meters;
 
     public SearchOrchestratorImpl(List<SearchProvider> providers,
                                   ResultProcessor resultProcessor,
                                   SearchCacheService cacheService,
+                                  HotWordService hotWordService,
                                   ExecutorService providerExecutor,
                                   MeterRegistry meters) {
         this.providers = providers;
         this.resultProcessor = resultProcessor;
         this.cacheService = cacheService;
+        this.hotWordService = hotWordService;
         this.providerExecutor = providerExecutor;
         this.meters = meters;
         log.info("SearchOrchestrator initialized with providers={}",
@@ -143,7 +147,7 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
         }
 
         // 5. Normalize -> dedup -> rank.
-        List<NormalizedResult> processed = resultProcessor.process(byProvider, selected);
+        List<NormalizedResult> processed = resultProcessor.process(byProvider, selected, req.getLang());
 
         // 6. Paginate.
         int total = processed.size();
@@ -171,6 +175,10 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
 
         // 8. Async cache write.
         cacheService.putAsync(cacheKey, resp);
+
+        // 9. Async record search query for hot-word aggregation.
+        CompletableFuture.runAsync(() -> hotWordService.recordSearch(req.getQ()), providerExecutor)
+                .exceptionally(ex -> { log.debug("recordSearch async failed: {}", ex.toString()); return null; });
 
         return resp;
     }

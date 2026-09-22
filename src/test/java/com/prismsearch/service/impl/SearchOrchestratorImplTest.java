@@ -1,5 +1,6 @@
 package com.prismsearch.service.impl;
 
+import com.prismsearch.cache.HotWordService;
 import com.prismsearch.cache.SearchCacheService;
 import com.prismsearch.common.BizException;
 import com.prismsearch.common.ErrorCode;
@@ -44,6 +45,7 @@ class SearchOrchestratorImplTest {
     private MeterRegistry meters;
     private PrismsearchProperties props;
     private SearchCacheService cacheService;
+    private HotWordService hotWordService;
     private ResultProcessor processor;
 
     @BeforeEach
@@ -60,6 +62,8 @@ class SearchOrchestratorImplTest {
         when(ops.get(anyString())).thenReturn(null);
         cacheService = new SearchCacheService(redis, props, meters, executor,
                 new com.fasterxml.jackson.databind.ObjectMapper());
+
+        hotWordService = mock(HotWordService.class);
 
         Tokenizer tokenizer = new Tokenizer();
         SimHasher simHasher = new SimHasher(tokenizer, redis, props);
@@ -82,7 +86,7 @@ class SearchOrchestratorImplTest {
         ));
 
         SearchOrchestratorImpl orch = new SearchOrchestratorImpl(
-                List.of(p1, p2), processor, cacheService, executor, meters);
+                List.of(p1, p2), processor, cacheService, hotWordService, executor, meters);
 
         SearchRequest req = new SearchRequest();
         req.setQ("test");
@@ -124,7 +128,7 @@ class SearchOrchestratorImplTest {
         };
 
         SearchOrchestratorImpl orch = new SearchOrchestratorImpl(
-                List.of(ok, failing), processor, cacheService, executor, meters);
+                List.of(ok, failing), processor, cacheService, hotWordService, executor, meters);
 
         SearchRequest req = new SearchRequest();
         req.setQ("test");
@@ -141,7 +145,7 @@ class SearchOrchestratorImplTest {
         SearchProvider failing2 = failingProvider("bing");
 
         SearchOrchestratorImpl orch = new SearchOrchestratorImpl(
-                List.of(failing1, failing2), processor, cacheService, executor, meters);
+                List.of(failing1, failing2), processor, cacheService, hotWordService, executor, meters);
 
         SearchRequest req = new SearchRequest();
         req.setQ("test");
@@ -160,7 +164,7 @@ class SearchOrchestratorImplTest {
         ));
 
         SearchOrchestratorImpl orch = new SearchOrchestratorImpl(
-                List.of(google, bing), processor, cacheService, executor, meters);
+                List.of(google, bing), processor, cacheService, hotWordService, executor, meters);
 
         SearchRequest req = new SearchRequest();
         req.setQ("test");
@@ -184,7 +188,7 @@ class SearchOrchestratorImplTest {
         ));
 
         SearchOrchestratorImpl orch = new SearchOrchestratorImpl(
-                List.of(p1, p2), processor, cacheService, executor, meters);
+                List.of(p1, p2), processor, cacheService, hotWordService, executor, meters);
 
         SearchRequest req = new SearchRequest();
         req.setQ("test");
@@ -205,7 +209,7 @@ class SearchOrchestratorImplTest {
         SearchProvider google = fakeProvider("google", 1.0, raws);
 
         SearchOrchestratorImpl orch = new SearchOrchestratorImpl(
-                List.of(google), processor, cacheService, executor, meters);
+                List.of(google), processor, cacheService, hotWordService, executor, meters);
 
         SearchRequest req = new SearchRequest();
         req.setQ("test");

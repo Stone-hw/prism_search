@@ -36,8 +36,14 @@ public class ResultProcessor {
         this.ranker = ranker;
     }
 
+    /** Boost multiplier for results matching the target language. */
+    private static final double LANG_MATCH_BOOST = 1.5;
+    /** Penalty multiplier for results NOT matching the target language. */
+    private static final double LANG_MISMATCH_PENALTY = 0.8;
+
     public List<NormalizedResult> process(Map<String, List<RawSearchResult>> byProvider,
-                                          List<SearchProvider> providers) {
+                                          List<SearchProvider> providers,
+                                          String lang) {
         long t0 = System.nanoTime();
 
         // 1. Normalize into per-provider URL->rank maps (needed by RRF).
@@ -67,10 +73,44 @@ public class ResultProcessor {
         // 3. RRF rank.
         List<NormalizedResult> ranked = ranker.rank(deduped, providers, rankByProviderUrl);
 
+        // 4. Language boost (skip for "auto" or null).
+        String targetLang = LanguageDetector.toLangCode(lang);
+        if (targetLang != null) {
+            applyLanguageBoost(ranked, targetLang);
+        }
+
         long elapsedMs = (System.nanoTime() - t0) / 1_000_000;
         log.debug("ResultProcessor normalized={} deduped={} ranked={} elapsedMs={}",
                 all.size(), deduped.size(), ranked.size(), elapsedMs);
         return ranked;
+    }
+
+    /**
+     * Adjust scores so that results matching the target language are boosted,
+     * and non-matching results are gently penalized. Then re-sort.
+     */
+    private void applyLanguageBoost(List<NormalizedResult> ranked, String targetLang) {
+        boolean anyChanged = false;
+        for (NormalizedResult r : ranked) {
+            String detected = LanguageDetector.detect(r.getTitle(), r.getSnippet());
+            if ("unknown".equals(detected)) {
+                continue;
+            }
+            if (detected.equals(targetLang)) {
+                r.setScore(r.getScore() * LANG_MATCH_BOOST);
+                anyChanged = true;
+            } else {
+                r.setScore(r.getScore() * LANG_MISMATCH_PENALTY);
+                anyChanged = true;
+            }
+        }
+        if (anyChanged) {
+            ranked.sort((a, b) -> {
+                int cmp = Double.compare(b.getScore(), a.getScore());
+                if (cmp != 0) return cmp;
+                return Integer.compare(a.getBestRank(), b.getBestRank());
+            });
+        }
     }
 
     /**

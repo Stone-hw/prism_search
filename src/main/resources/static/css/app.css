@@ -68,6 +68,10 @@ body {
     max-width: 584px;
 }
 
+.search-input-container {
+    position: relative;
+}
+
 .search-input-wrap {
     display: flex;
     align-items: center;
@@ -77,6 +81,7 @@ body {
     height: 46px;
     transition: box-shadow 0.2s, border-color 0.2s;
     background: #fff;
+    position: relative;
 }
 .search-input-wrap:hover {
     box-shadow: var(--shadow-sm);
@@ -121,6 +126,49 @@ body {
 .clear-btn:hover {
     background: var(--hover-bg);
     color: var(--fg);
+}
+
+/* 搜索建议下拉 */
+.suggest-dropdown {
+    list-style: none;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    margin: 0;
+    padding: 4px 0;
+    box-shadow: var(--shadow-md);
+    max-height: 280px;
+    overflow-y: auto;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 20;
+}
+.suggest-dropdown li {
+    padding: 8px 16px 8px 44px;
+    font-size: 14px;
+    color: var(--fg);
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.suggest-dropdown li::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2370757a' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.suggest-dropdown li:hover,
+.suggest-dropdown li.active {
+    background: var(--hover-bg);
 }
 
 /* 首页按钮区 */
@@ -322,6 +370,15 @@ body {
     padding: 1px 6px;
     border: 1px solid var(--border);
     border-radius: 4px;
+}
+
+/* 关键字高亮 */
+mark {
+    background: #fff0f0;
+    color: var(--error);
+    padding: 0 2px;
+    border-radius: 2px;
+    font-style: normal;
 }
 
 /* 状态 */

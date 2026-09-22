@@ -1,5 +1,6 @@
 package com.prismsearch.web;
 
+import com.prismsearch.cache.HotWordService;
 import com.prismsearch.common.ApiResponse;
 import com.prismsearch.config.PrismsearchProperties;
 import com.prismsearch.model.SearchRequest;
@@ -20,9 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Public search API.
@@ -37,10 +36,14 @@ public class SearchController {
 
     private final SearchOrchestrator orchestrator;
     private final PrismsearchProperties props;
+    private final HotWordService hotWordService;
 
-    public SearchController(SearchOrchestrator orchestrator, PrismsearchProperties props) {
+    public SearchController(SearchOrchestrator orchestrator,
+                            PrismsearchProperties props,
+                            HotWordService hotWordService) {
         this.orchestrator = orchestrator;
         this.props = props;
+        this.hotWordService = hotWordService;
     }
 
     @GetMapping("/search")
@@ -52,29 +55,12 @@ public class SearchController {
     }
 
     @GetMapping("/suggest")
-    @Operation(summary = "Query suggestion based on a local hot-word list")
+    @Operation(summary = "Query suggestion from Redis hot-words with static fallback")
     public ApiResponse<List<String>> suggest(
             @RequestParam(name = "q", required = false) @Size(max = 64) String q,
             @RequestParam(name = "limit", defaultValue = "8") @Min(1) @Max(20) int limit) {
-        List<String> dict = props.getSuggest().getHotWords();
         int max = Math.min(limit, props.getSuggest().getLimit());
-        List<String> out = new ArrayList<>();
-        if (dict == null || dict.isEmpty()) {
-            return ApiResponse.ok(out);
-        }
-        String prefix = q == null ? "" : q.trim().toLowerCase(Locale.ROOT);
-        for (String w : dict) {
-            if (w == null || w.isBlank()) {
-                continue;
-            }
-            if (prefix.isEmpty() || w.toLowerCase(Locale.ROOT).startsWith(prefix)
-                    || w.toLowerCase(Locale.ROOT).contains(prefix)) {
-                out.add(w);
-                if (out.size() >= max) {
-                    break;
-                }
-            }
-        }
-        return ApiResponse.ok(out);
+        List<String> suggestions = hotWordService.suggest(q, max);
+        return ApiResponse.ok(suggestions);
     }
 }

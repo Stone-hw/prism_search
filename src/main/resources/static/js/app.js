@@ -37,6 +37,129 @@
     let lastQuery = null;
     let abortCtl = null;
 
+    // ===== 搜索建议 =====
+    const homeSuggest = document.getElementById('home-suggest');
+    const resultSuggest = document.getElementById('result-suggest');
+    let suggestTimer = null;
+    let suggestAbort = null;
+    let activeIdx = -1;
+
+    // 建议接口内存缓存（5 分钟 TTL，最多 50 条）
+    var suggestCache = new Map();
+    var SUGGEST_TTL = 5 * 60 * 1000;
+    var SUGGEST_MAX = 50;
+
+    function suggestCacheGet(key) {
+        var entry = suggestCache.get(key);
+        if (!entry) return null;
+        if (Date.now() - entry.t > SUGGEST_TTL) {
+            suggestCache.delete(key);
+            return null;
+        }
+        return entry.d;
+    }
+
+    function suggestCacheSet(key, data) {
+        if (suggestCache.size >= SUGGEST_MAX) {
+            // 清除最早的一条
+            suggestCache.delete(suggestCache.keys().next().value);
+        }
+        suggestCache.set(key, { d: data, t: Date.now() });
+    }
+
+    function getSuggestList(inputEl) {
+        return inputEl === homeQ ? homeSuggest : resultSuggest;
+    }
+
+    function fetchSuggest(inputEl) {
+        var q = inputEl.value.trim();
+        var dropdown = getSuggestList(inputEl);
+        if (q.length < 1) { hideSuggest(dropdown); return; }
+
+        var cacheKey = q.toLowerCase();
+
+        // 缓存命中直接渲染
+        var cached = suggestCacheGet(cacheKey);
+        if (cached) { renderSuggest(dropdown, cached, inputEl); return; }
+
+        clearTimeout(suggestTimer);
+        suggestTimer = setTimeout(function () {
+            if (suggestAbort) suggestAbort.abort();
+            suggestAbort = new AbortController();
+            fetch('/api/suggest?q=' + encodeURIComponent(q) + '&limit=8', { signal: suggestAbort.signal })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                    if (!j || j.code !== 0 || !j.data || j.data.length === 0) {
+                        hideSuggest(dropdown); return;
+                    }
+                    suggestCacheSet(cacheKey, j.data);
+                    renderSuggest(dropdown, j.data, inputEl);
+                })
+                .catch(function (e) { if (e.name !== 'AbortError') hideSuggest(dropdown); });
+        }, 200);
+    }
+
+    function renderSuggest(dropdown, items, inputEl) {
+        dropdown.innerHTML = '';
+        activeIdx = -1;
+        items.forEach(function (text, i) {
+            var li = document.createElement('li');
+            li.textContent = text;
+            li.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                inputEl.value = text;
+                hideSuggest(dropdown);
+                inputEl.closest('form').dispatchEvent(new Event('submit', { cancelable: true }));
+            });
+            dropdown.appendChild(li);
+        });
+        dropdown.classList.remove('hidden');
+    }
+
+    function hideSuggest(dropdown) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
+        activeIdx = -1;
+    }
+
+    function handleSuggestKey(e, inputEl) {
+        var dropdown = getSuggestList(inputEl);
+        var items = dropdown.querySelectorAll('li');
+        if (!items.length || dropdown.classList.contains('hidden')) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIdx = Math.min(activeIdx + 1, items.length - 1);
+            updateActive(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIdx = Math.max(activeIdx - 1, -1);
+            updateActive(items);
+        } else if (e.key === 'Enter' && activeIdx >= 0) {
+            e.preventDefault();
+            inputEl.value = items[activeIdx].textContent;
+            hideSuggest(dropdown);
+            inputEl.closest('form').dispatchEvent(new Event('submit', { cancelable: true }));
+        } else if (e.key === 'Escape') {
+            hideSuggest(dropdown);
+        }
+    }
+
+    function updateActive(items) {
+        items.forEach(function (li, i) {
+            li.classList.toggle('active', i === activeIdx);
+        });
+    }
+
+    // 绑定输入事件
+    homeQ.addEventListener('input', function () { fetchSuggest(homeQ); });
+    homeQ.addEventListener('keydown', function (e) { handleSuggestKey(e, homeQ); });
+    homeQ.addEventListener('blur', function () { setTimeout(function () { hideSuggest(homeSuggest); }, 150); });
+
+    resultQ.addEventListener('input', function () { fetchSuggest(resultQ); });
+    resultQ.addEventListener('keydown', function (e) { handleSuggestKey(e, resultQ); });
+    resultQ.addEventListener('blur', function () { setTimeout(function () { hideSuggest(resultSuggest); }, 150); });
+
     // ===== 视图切换 =====
     function showHome() {
         homeView.classList.remove('hidden');
@@ -101,6 +224,7 @@
         e.preventDefault();
         var q = homeQ.value.trim();
         if (!q) { homeQ.focus(); return; }
+        hideSuggest(homeSuggest);
         syncFromHome();
         currentPage = 1;
         showResults();
@@ -111,6 +235,7 @@
         e.preventDefault();
         var q = resultQ.value.trim();
         if (!q) { resultQ.focus(); return; }
+        hideSuggest(resultSuggest);
         currentPage = 1;
         runSearch(q, currentPage);
     });
@@ -237,14 +362,14 @@
             resultsEl.appendChild(empty);
         } else {
             data.results.forEach(function (r) {
-                resultsEl.appendChild(renderCard(r));
+                resultsEl.appendChild(renderCard(r, data.query));
             });
         }
 
         renderPager(data);
     }
 
-    function renderCard(r) {
+    function renderCard(r, query) {
         var card = document.createElement('article');
         card.className = 'result';
 
@@ -261,7 +386,7 @@
         a.href = r.url;
         a.target = '_blank';
         a.rel = 'noopener noreferrer nofollow';
-        a.textContent = r.title || r.url;
+        a.innerHTML = highlightText(r.title || r.url, query);
         h.appendChild(a);
         card.appendChild(h);
 
@@ -269,7 +394,7 @@
         if (r.snippet) {
             var p = document.createElement('p');
             p.className = 'snippet';
-            p.textContent = r.snippet;
+            p.innerHTML = highlightText(r.snippet, query);
             card.appendChild(p);
         }
 
@@ -331,5 +456,21 @@
         } catch (e) {
             return u;
         }
+    }
+
+    /** 将文本中匹配查询词的部分用 <mark> 包裹 */
+    function highlightText(text, query) {
+        if (!text || !query || !query.trim()) return escapeHtml(text || '');
+        var escaped = escapeHtml(text);
+        var terms = query.trim().split(/\s+/).filter(Boolean);
+        terms.forEach(function (term) {
+            var re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            escaped = escaped.replace(re, '<mark>$1</mark>');
+        });
+        return escaped;
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 })();

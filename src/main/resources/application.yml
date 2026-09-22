@@ -103,20 +103,17 @@ prismsearch:
     enabled: ${RATE_LIMIT_ENABLED:true}
     per-minute: 30
   suggest:
+    enabled: true
     limit: 8
-    hot-words:
+    aggregate-cron: "0 0 * * * ?"
+    aggregate-top-n: 50
+    searchlog-ttl-days: 7
+    hot-words:                       # static fallback when Redis is unavailable
       - spring boot
       - java 并发
       - redis
       - docker compose
-      - kotlin coroutines
-      - react hooks
-      - vue3 composition api
       - kubernetes
-      - postgresql 索引
-      - mybatis plus
       - elasticsearch
       - nginx 配置
-      - linux 性能
-      - kafka
       - prometheus
