@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -24,7 +25,8 @@ public class ExecutorConfig {
 
     @Bean(name = "providerExecutor")
     public ExecutorService providerExecutor() {
-        this.providerExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        ThreadFactory factory = Thread.ofVirtual().name("vt-provider-", 1).factory();
+        this.providerExecutor = Executors.newThreadPerTaskExecutor(factory);
         log.info("Initialized virtual-thread executor for Provider fan-out");
         return this.providerExecutor;
     }

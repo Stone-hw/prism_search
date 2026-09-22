@@ -36,6 +36,10 @@ prismsearch:
       enabled: false
       api-key: test
       timeout-ms: 500
+    baidu:
+      enabled: false
+      api-key: test
+      timeout-ms: 500
   rate-limit:
     enabled: false
   cache:

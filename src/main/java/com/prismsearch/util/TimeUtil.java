@@ -20,6 +20,10 @@ public final class TimeUtil {
             DateTimeFormatter.RFC_1123_DATE_TIME
     };
 
+    /** Baidu returns "yyyy-MM-dd HH:mm:ss" format. */
+    private static final DateTimeFormatter BAIDU_DATE_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private TimeUtil() {
     }
 
@@ -54,5 +58,22 @@ public final class TimeUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * Parse Baidu's date format "yyyy-MM-dd HH:mm:ss".
+     *
+     * @return parsed {@link LocalDateTime}, or {@code null} when unparseable.
+     */
+    public static LocalDateTime parseBaiduDate(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(raw.trim(), BAIDU_DATE_FMT);
+        } catch (DateTimeParseException e) {
+            // Fall back to ISO parsing in case Baidu changes format.
+            return parseIso(raw);
+        }
     }
 }

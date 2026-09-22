@@ -68,7 +68,9 @@ public abstract class AbstractSearchProvider implements SearchProvider {
             int count = results == null ? 0 : results.size();
             sample.stop(Timer.builder("prismsearch.provider.latency")
                     .tag("name", name())
+                    .publishPercentileHistogram()
                     .register(meters));
+            meters.summary("prismsearch.provider.result.count", "name", name()).record(count);
             circuitBreaker.recordSuccess(name());
             log.info("[provider={}] [q={}] [elapsed={}ms] [count={}] success",
                     name(), abbreviate(request.getQ()), elapsedMs, count);
@@ -77,6 +79,7 @@ public abstract class AbstractSearchProvider implements SearchProvider {
             long elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
             sample.stop(Timer.builder("prismsearch.provider.latency")
                     .tag("name", name())
+                    .publishPercentileHistogram()
                     .register(meters));
             String type = classify(ex);
             meters.counter("prismsearch.provider.error", "name", name(), "type", type).increment();

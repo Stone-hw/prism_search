@@ -411,6 +411,7 @@ body {
 .badge-google::before { background: #4285f4; }
 .badge-bing::before { background: #008373; }
 .badge-searxng::before { background: #6f42c1; }
+.badge-baidu::before { background: #2932e1; }
 .badge-unknown::before { background: var(--muted); }
 
 .score {

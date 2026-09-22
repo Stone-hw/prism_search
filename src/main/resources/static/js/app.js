@@ -278,7 +278,7 @@
         meta.className = 'meta';
         (r.sources || (r.source ? [r.source] : [])).forEach(function (s) {
             var b = document.createElement('span');
-            b.className = 'badge badge-' + (['google', 'bing', 'searxng'].indexOf(s) >= 0 ? s : 'unknown');
+            b.className = 'badge badge-' + (['google', 'bing', 'searxng', 'baidu'].indexOf(s) >= 0 ? s : 'unknown');
             b.textContent = s;
             meta.appendChild(b);
         });

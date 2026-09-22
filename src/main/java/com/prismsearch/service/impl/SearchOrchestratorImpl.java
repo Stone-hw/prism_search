@@ -76,7 +76,9 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
                 meters.counter("prismsearch.request.total",
                         "cached", "true", "success", "true").increment();
                 sample.stop(Timer.builder("prismsearch.request.latency")
-                        .tag("cached", "true").register(meters));
+                        .tag("cached", "true")
+                        .publishPercentileHistogram()
+                        .register(meters));
                 return resp;
             }
         }
@@ -94,7 +96,10 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
         if (selected.isEmpty()) {
             // No provider available at all - treat as full outage.
             meters.counter("prismsearch.request.total", "cached", "false", "success", "false").increment();
-            sample.stop(Timer.builder("prismsearch.request.latency").tag("cached", "false").register(meters));
+            sample.stop(Timer.builder("prismsearch.request.latency")
+                    .tag("cached", "false")
+                    .publishPercentileHistogram()
+                    .register(meters));
             throw new BizException(ErrorCode.ALL_PROVIDERS_FAILED, "no enabled provider");
         }
 
@@ -130,7 +135,10 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
         boolean anySucceeded = statusMap.values().stream().anyMatch(s -> "ok".equals(s.getStatus()));
         if (allEmpty && !anySucceeded) {
             meters.counter("prismsearch.request.total", "cached", "false", "success", "false").increment();
-            sample.stop(Timer.builder("prismsearch.request.latency").tag("cached", "false").register(meters));
+            sample.stop(Timer.builder("prismsearch.request.latency")
+                    .tag("cached", "false")
+                    .publishPercentileHistogram()
+                    .register(meters));
             throw new BizException(ErrorCode.ALL_PROVIDERS_FAILED);
         }
 
@@ -156,7 +164,10 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
 
         meters.counter("prismsearch.request.total", "cached", "false", "success", "true").increment();
         meters.summary("prismsearch.result.count").record(total);
-        sample.stop(Timer.builder("prismsearch.request.latency").tag("cached", "false").register(meters));
+        sample.stop(Timer.builder("prismsearch.request.latency")
+                .tag("cached", "false")
+                .publishPercentileHistogram()
+                .register(meters));
 
         // 8. Async cache write.
         cacheService.putAsync(cacheKey, resp);

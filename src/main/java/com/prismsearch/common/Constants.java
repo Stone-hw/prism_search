@@ -36,4 +36,5 @@ public final class Constants {
     public static final String PROVIDER_SEARXNG = "searxng";
     public static final String PROVIDER_GOOGLE = "google";
     public static final String PROVIDER_BING = "bing";
+    public static final String PROVIDER_BAIDU = "baidu";
 }
