@@ -85,7 +85,7 @@ prismsearch:
       mkt: zh-CN
     baidu:
       enabled: ${BAIDU_ENABLED:true}
-      api-key: ${BAIDU_API_KEY:bce-v3/ALTAK-koEzE6bD6GGZSx263bCBJ/16d4feb2f71cef214e7f129a6c25d165af2f4c90}
+      api-key: ${BAIDU_API_KEY:}
       endpoint: https://qianfan.baidubce.com/v2/ai_search/web_search
       timeout-ms: 2500
       weight: 1.0
