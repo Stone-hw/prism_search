@@ -7,14 +7,17 @@ import com.prismsearch.config.PrismsearchProperties;
 import com.prismsearch.model.SearchRequest;
 import com.prismsearch.model.SearchResponse;
 import com.prismsearch.util.Md5Util;
+import com.prismsearch.util.MdcUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -86,7 +89,8 @@ public class SearchCacheService {
         if (!props.getCache().isEnabled() || resp == null) {
             return;
         }
-        CompletableFuture.runAsync(() -> put(key, resp), providerExecutor)
+        Map<String, String> mdcContext = MDC.getCopyOfContextMap();
+        CompletableFuture.runAsync(MdcUtil.wrap(() -> put(key, resp), mdcContext), providerExecutor)
                 .exceptionally(ex -> {
                     meters.counter("prismsearch.cache.error", "op", "put_async").increment();
                     log.debug("Cache putAsync failed for key {}: {}", key, ex.toString());

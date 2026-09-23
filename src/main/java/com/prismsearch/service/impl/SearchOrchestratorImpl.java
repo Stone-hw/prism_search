@@ -12,10 +12,12 @@ import com.prismsearch.model.SearchResponse;
 import com.prismsearch.provider.SearchProvider;
 import com.prismsearch.rank.ResultProcessor;
 import com.prismsearch.service.SearchOrchestrator;
+import com.prismsearch.util.MdcUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -115,11 +117,14 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
             }
         }
 
+        // Capture MDC context so virtual threads inherit traceId.
+        Map<String, String> mdcContext = MDC.getCopyOfContextMap();
+
         // 3. Concurrent fan-out on virtual threads.
         List<CompletableFuture<ProviderOutcome>> futures = new ArrayList<>(selected.size());
         for (SearchProvider p : selected) {
             CompletableFuture<ProviderOutcome> f = CompletableFuture
-                    .supplyAsync(() -> callProvider(p, req), providerExecutor)
+                    .supplyAsync(MdcUtil.wrap(() -> callProvider(p, req), mdcContext), providerExecutor)
                     .orTimeout(p.timeoutMs(), TimeUnit.MILLISECONDS)
                     .handle((outcome, ex) -> outcome != null
                             ? outcome
@@ -177,7 +182,7 @@ public class SearchOrchestratorImpl implements SearchOrchestrator {
         cacheService.putAsync(cacheKey, resp);
 
         // 9. Async record search query for hot-word aggregation.
-        CompletableFuture.runAsync(() -> hotWordService.recordSearch(req.getQ()), providerExecutor)
+        CompletableFuture.runAsync(MdcUtil.wrap(() -> hotWordService.recordSearch(req.getQ()), mdcContext), providerExecutor)
                 .exceptionally(ex -> { log.debug("recordSearch async failed: {}", ex.toString()); return null; });
 
         return resp;
